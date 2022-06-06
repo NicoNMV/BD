@@ -1,4 +1,3 @@
-create database dbRegistProd;
 use dbRegistProd;
 
 create table tbUF (
@@ -53,7 +52,7 @@ create table tbClientePJ (
 
 create table tbNotaFiscal (
 	NF int primary key,
-	TotalNota decimal(7, 2) not null,
+	TotalNota decimal(7,2) not null,
 	DataEmissao date not null
 );
 
@@ -67,7 +66,7 @@ create table tbFornecedor (
 create table tbCompra (
 	NotaFiscal int primary key,
 	DataCompra date not null,
-	ValorTotal decimal(8, 2) not null,
+	ValorTotal decimal(8,2) not null,
 	QtdTotal int not null,
 	Cod_Fornecedor int,
 	foreign key (Cod_Fornecedor) references tbFornecedor(Codigo)
@@ -77,12 +76,12 @@ create table tbProduto (
 	CodBarras int primary key,
 	Qtd int,
 	Nome varchar(50),
-	ValorUnitario decimal(6, 2) not null
+	ValorUnitario decimal(6,2) not null
 );
 
 create table tbItemCompra (
 	Qtd int not null,
-	ValorItem decimal(6, 2) not null,
+	ValorItem decimal(6,2) not null,
 	NotaFiscal int,
 	CodBarras int,
 	primary key (NotaFiscal, CodBarras),
@@ -94,7 +93,7 @@ create table tbVenda (
 	IdCliente int,
 	NumeroVenda int auto_increment primary key,
 	DataVenda date not null,
-	TotalVenda decimal(7, 2) not null,
+	TotalVenda decimal(7,2) not null,
 	NotaFiscal int,
 	foreign key (IdCliente) references tbCliente(Id),    
 	foreign key (NotaFiscal) references tbNotaFiscal(NF)
@@ -104,8 +103,20 @@ create table tbItemVenda (
 	NumeroVenda int,
 	CodBarras int,
 	Qtd int,
-	ValorItem decimal(6, 2),    
+	ValorItem decimal(6,2),    
 	primary key (NumeroVenda, CodBarras),
 	foreign key (NumeroVenda) references tbVenda(NumeroVenda),
 	foreign key (CodBarras) references tbProduto(CodBarras)
 );
+
+insert into tbFornecedor(Nome, Cnpj, Telefone)
+	values('Revenda Chico loco', '1245678937123', '11934567897'),
+		  ('José FAz Tudo S/A', '1345678937123', '11934567898'),
+	      ('Vadalto Entregas', '1445678937123', '11934567899'),    
+	      ('Astrogildo das Estrela', '1545678937123', '11934567800'),
+          ('Amoroso e Doce', '1645678937123', '11934567801'),
+          ('Marcelo Dedal', '1745678937123', '11934567802'),
+          ('Franciscano Cachaça', '1845678937123', '11934567803'),
+          ('Joãozinho Chupeta', '1945678937123', '11934567804');
+          
+select * from tbFornecedor;  
