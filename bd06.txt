@@ -1,0 +1,111 @@
+create database dbRegistProd;
+use dbRegistProd;
+
+create table tbUF (
+	IdUF int auto_increment primary key,
+	UF char(2) unique
+);
+
+create table tbBairro (
+	IdBairro int auto_increment primary key,
+	Bairro varchar(200)
+);
+
+create table tbCidade (
+	IdCidade int auto_increment primary key,
+	Cidade varchar(200)
+);
+
+create table tbEndereco (
+	CEP varchar(8) primary key,
+	Logradouro varchar(200),
+	IdBairro int,
+	IdCidade int,
+	IdUF int,
+    foreign key (IdBairro) references tbBairro(IdBairro),
+    foreign key (IdCidade) references tbCidade(IdCidade),
+	foreign key (IdUF) references tbUF(IdUF)
+);
+
+create table tbCliente (
+	Id int primary key auto_increment,
+	Nome varchar(50) not null,
+	CEP varchar(8) not null,
+	CompEnd varchar(50),
+	foreign key (CEP) references tbEndereco(CEP)
+);
+
+create table tbClientePF (
+	IdCliente int auto_increment,
+	Cpf varchar(11) not null primary key,
+	Rg varchar(8),
+	RgDig varchar(1),
+	Nasc date,
+	foreign key (IdCliente) references tbCliente(Id)   
+);
+
+create table tbClientePJ (
+	IdCliente int auto_increment,
+	Cnpj varchar(14) not null primary key,
+	Ie varchar(9),
+    foreign key (IdCliente) references tbCliente(Id)
+);
+
+create table tbNotaFiscal (
+	NF int primary key,
+	TotalNota decimal(7, 2) not null,
+	DataEmissao date not null
+);
+
+create table tbFornecedor (
+	Codigo int primary key auto_increment,
+	Cnpj varchar(14) not null,
+	Nome varchar(200),
+	Telefone varchar(11)
+);
+
+create table tbCompra (
+	NotaFiscal int primary key,
+	DataCompra date not null,
+	ValorTotal decimal(8, 2) not null,
+	QtdTotal int not null,
+	Cod_Fornecedor int,
+	foreign key (Cod_Fornecedor) references tbFornecedor(Codigo)
+);
+
+create table tbProduto (
+	CodBarras int primary key,
+	Qtd int,
+	Nome varchar(50),
+	ValorUnitario decimal(6, 2) not null
+);
+
+create table tbItemCompra (
+	Qtd int not null,
+	ValorItem decimal(6, 2) not null,
+	NotaFiscal int,
+	CodBarras int,
+	primary key (NotaFiscal, CodBarras),
+	foreign key (NotaFiscal) references tbCompra(NotaFiscal),
+	foreign key (CodBarras) references tbProduto(CodBarras)
+);
+
+create table tbVenda (
+	IdCliente int,
+	NumeroVenda int auto_increment primary key,
+	DataVenda date not null,
+	TotalVenda decimal(7, 2) not null,
+	NotaFiscal int,
+	foreign key (IdCliente) references tbCliente(Id),    
+	foreign key (NotaFiscal) references tbNotaFiscal(NF)
+);
+
+create table tbItemVenda (
+	NumeroVenda int,
+	CodBarras int,
+	Qtd int,
+	ValorItem decimal(6, 2),    
+	primary key (NumeroVenda, CodBarras),
+	foreign key (NumeroVenda) references tbVenda(NumeroVenda),
+	foreign key (CodBarras) references tbProduto(CodBarras)
+);
