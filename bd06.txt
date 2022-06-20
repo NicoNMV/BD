@@ -1,3 +1,4 @@
+create database dbRegistProd;
 use dbRegistProd;
 
 create table tbUF (
@@ -73,7 +74,7 @@ create table tbCompra (
 );
 
 create table tbProduto (
-	CodBarras int primary key,
+	CodBarras varchar(14) primary key,
 	Qtd int,
 	Nome varchar(50),
 	ValorUnitario decimal(6,2) not null
@@ -83,7 +84,7 @@ create table tbItemCompra (
 	Qtd int not null,
 	ValorItem decimal(6,2) not null,
 	NotaFiscal int,
-	CodBarras int,
+	CodBarras varchar(14),
 	primary key (NotaFiscal, CodBarras),
 	foreign key (NotaFiscal) references tbCompra(NotaFiscal),
 	foreign key (CodBarras) references tbProduto(CodBarras)
@@ -101,7 +102,7 @@ create table tbVenda (
 
 create table tbItemVenda (
 	NumeroVenda int,
-	CodBarras int,
+	CodBarras varchar(14),
 	Qtd int,
 	ValorItem decimal(6,2),    
 	primary key (NumeroVenda, CodBarras),
@@ -120,3 +121,80 @@ insert into tbFornecedor(Nome, Cnpj, Telefone)
           ('Joãozinho Chupeta', '1945678937123', '11934567804');
           
 select * from tbFornecedor;  
+
+
+Delimiter $$
+
+create procedure spCidade(vCidade varchar(200))
+
+begin
+insert into tbCidade (Cidade)
+	values(vCidade); 
+end $$ 
+
+	call spCidade('Rio de Janeiro');
+    call spCidade('São Carlos');
+    call spCidade('Campinas');
+    call spCidade('Franco da Rocha');
+    call spCidade('Osasco');
+    call spCidade('Pirituba');
+    call spCidade('lapa');
+    call spCidade('Ponta Grossa');   
+
+select * from tbCidade;
+
+
+Delimiter $$
+
+create procedure spEstado(vUF char(2))
+
+begin
+insert into tbUF (UF)
+	values(vUF); 
+end $$
+
+	call spEstado('SP');
+    call spEstado('RJ');
+    call spEstado('RS');
+   
+select * from tbUF;   
+
+
+Delimiter $$
+
+create procedure spBairro(vBairro varchar(200))
+
+begin
+insert into tbBairro (Bairro)
+	values(vBairro); 
+end $$
+
+	call spBairro('Aclimação');
+    call spBairro('Capão Redondo');
+    call spBairro('Pirituba');
+    call spBairro('Liberdade');
+
+select * from tbBairro;
+
+
+Delimiter $$
+
+create procedure spProd(vCod varchar(14), vNome varchar(50), vValor decimal(6,2), vQtd int)
+
+begin
+insert into tbProduto (CodBarras, Nome, ValorUnitario,  Qtd)
+	values(vCod, vNome, vValor, vQtd); 
+end $$
+
+	call spProd('12345678910111', 'Rei de Papel Mache', '54.61', 120);
+    call spProd('12345678910112', 'Bolinha de Sabão', '100.45', 120);
+    call spProd('12345678910113', 'Carro Bate Bate', '44', 120);
+    call spProd('12345678910114', 'Bola Furada', '10', 120);
+    call spProd('12345678910115', 'Maçã Laranja', '99.44', 120);
+    call spProd('12345678910116', 'Boneco do Hitler', '124', 200);
+    call spProd('12345678910117', 'Farinha de Suruí', '50', 200);
+    call spProd('12345678910118', 'Zelador de Cemitério', '24.50', 100);
+    
+   select * from tbProduto;
+   
+   
