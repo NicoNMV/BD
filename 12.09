@@ -1,0 +1,80 @@
+create database db_Escola;
+use db_Escola;
+
+
+create table tb_cliente(
+	clienteID int primary key auto_increment,
+    cliNome varchar(150) not null,
+    cliEmail varchar(150) not null
+);
+
+delimiter $$
+create procedure spCadastroCli(vNome varchar(150), vEmail varchar(150))
+ begin
+	insert into tb_cliente(cliNome, cliEmail)
+		values(vNome, vEmail); 
+end $$
+
+	call spCadastroCli('Carlos', 'cc@escola.com');
+    call spCadastroCli('Davizinho', 'zinho@escola.com'); 
+    call spCadastroCli('Lindinha', 'lind@escola.com'); 
+    
+    select * from tb_cliente;
+    
+create table tb_clienteHistorico like tb_cliente;   
+
+alter table tb_clienteHistorico modify ClienteID int not null;
+alter table tb_clienteHistorico drop primary key;  
+
+alter table tb_clienteHistorico add Situacao varchar(100);
+alter table tb_clienteHistorico add Momento datetime;
+        
+alter table tb_clienteHistorico add constraint PK_ID_Cliente primary key(ClienteID, Situacao, Momento);
+
+delimiter //
+create trigger trg_clienteHistoricoInsert after insert on tb_cliente
+for each row
+begin
+		insert into tb_clienteHistorico
+				set ClienteID = new.clienteID,
+                    cliNome = new.cliNome,
+                    cliEmail = new.cliEmail,
+                    Momento = current_timestamp(),
+                    Situacao = "Novo";
+end;
+//       
+
+	call spCadastroCli('Tontinho', 'tonti@escola.com');
+    
+select * from tb_clienteHistorico;
+
+delimiter //
+create trigger trg_clienteHistoricoUpdate after update on tb_cliente
+for each row
+begin
+insert into tb_clienteHistorico
+				set ClienteID = old.clienteID,
+                    cliNome = old.cliNome,
+                    cliEmail = old.cliEmail,
+                    Momento = current_timestamp(),
+                    Situacao = "Antes";
+                    
+		insert into tb_clienteHistorico
+				set ClienteID = new.clienteID,
+                    cliNome = new.cliNome,
+                    cliEmail = new.cliEmail,
+                    Momento = current_timestamp(),
+                    Situacao = "Depois";
+end;
+// 
+
+
+delimiter $$
+create procedure spUpdateCli(vID int, vNome varchar(150), vEmail varchar(150))
+ begin
+	update tb_cliente set cliNome = vNome, cliEmail = vEmail 
+    where clienteId = vID;
+end $$
+
+call spUpdateCli(4, 'Muito Tontinho', 'tonti@escola');
+call spUpdateCli(3, 'Lindinha de Morrer', 'lind@escola');
