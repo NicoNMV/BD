@@ -291,9 +291,10 @@ delimiter $$
  delimiter $$
  create procedure spInsertCompra(vNotaFiscal int, vfornecedor varchar(200), vDataCompra date, vCodBarra varchar(14),vValorItem decimal(6,2), vQtd int, vQtdTotal int, vValorTotal decimal(8,2)) 
  begin
+	 set @DataVenda = str_to_date(vDataCompra, "%d/%m/%Y");
 	if not exists(select * from tbcompra where notafiscal = vnotafiscal) then
 		set @forne = (select codigo from tbfornecedor where nome = vFornecedor);
-		insert into tbcompra(NotaFiscal, DataCompra, ValorTotal, QtdTotal, Cod_Fornecedor) values (vNotaFiscal, vDataCompra, vValorTotal, vQtdTotal, @forne);
+		insert into tbcompra(NotaFiscal, DataCompra, ValorTotal, QtdTotal, Cod_Fornecedor) values (vNotaFiscal, @DataVenda, vValorTotal, vQtdTotal, @forne);
 		insert into tbitemcompra(Qtd, ValorItem, Notafiscal, codbarras) values (vQtd, vValorItem, vNotafiscal, vcodbarra);
 	else 
 		insert into tbitemcompra(Qtd, ValorItem, Notafiscal, codbarras) values (vQtd, vValorItem, vNotafiscal, vcodbarra);
@@ -333,8 +334,6 @@ end $$
 call spInsertVenda(1, 'Pimpão', '22/08/2022', 12345678910111, 54.61, 1, 54.61, null);
 call spInsertVenda(2, 'Lança Perfume', '22/08/2022', 12345678910112, 100.45, 2, 200.90, null);
 call spInsertVenda(3, 'Pimpão', '22/08/2022', 12345678910113, 44.00, 1, 44.00, null);
-
-call spInsertVenda(4, 'Disney Chaplin', '22/08/2022', 12345678910113, 44.00, 1, 44.00, null);
 
 select * from tbvenda;
 select * from tbitemvenda;
@@ -441,6 +440,8 @@ end;
 
 call spProd(12345678910119,"Agua Mineral","1.99", "500");
 
+call spProd(12345678910199,"Boneca","21.00", "200");
+
 select * from tbProduto;
 select * from tbProdutoHistorico;
 
@@ -462,10 +463,62 @@ end;
 call spUpdateProduto(12345678910119, '2.99');
 
 select * from tbProduto;
-select * from tbProdutoHistorico;     
+select * from tbProdutoHistorico;  
+describe tbProduto;   
 
 -- exercício 21
 call spSelectProduto;
 
 -- exercício 22
-call spInsertVenda(1, 'Pimpão', '22/08/2022', 12345678910111, 54.61, 1, 54.61, null);
+call spInsertVenda(4, 'Disney Chaplin', '26/09/2022', 12345678910111, 65.00, 1, 65.00, null);
+
+-- exercício 23
+select * from tbvenda order by NumeroVenda DESC limit 1;
+
+-- exercício 24
+select * from tbitemvenda order by NumeroVenda DESC limit 1;
+
+-- exercício 25
+delimiter $$
+create procedure spSelectClinete(NomeCli varchar(100))
+begin 
+	select * from tbCliente where Nome = NomeCli;
+end
+$$
+
+call spSelectClinete('Disney Chaplin');
+
+select * from tbcliente;
+
+-- exercício 26
+delimiter //
+Create trigger trgUpdateProdutoItemVenda after insert on tbItemVenda
+for each row
+begin
+	update tbProduto 
+    set Qtd = Qtd - new.Qtd where CodBarras = new.CodBarras;
+end
+//
+
+-- exercíico 27
+call spInsertVenda(5, "Paganada", "26/09/2022", 12345678910114, 10.00, 15, 150.00, null);
+
+-- exercício 28
+call spSelectProduto();
+
+-- exercício 29 
+delimiter //
+Create trigger trgUpdateProdutoCompra after insert on tbItemCompra
+for each row
+begin
+	update tbProduto 
+    set Qtd = Qtd + new.Qtd where CodBarras = new.CodBarras;
+end
+//
+
+-- exercício 30
+ call spInsertCompra(10548, "Amoroso e Doce", '10/09/2022', 12345678910111, 40.00, 100, 100, 4000.00);
+ 
+ -- exercício 31
+call spSelectProduto();
+
