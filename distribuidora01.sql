@@ -291,10 +291,10 @@ delimiter $$
  delimiter $$
  create procedure spInsertCompra(vNotaFiscal int, vfornecedor varchar(200), vDataCompra date, vCodBarra varchar(14),vValorItem decimal(6,2), vQtd int, vQtdTotal int, vValorTotal decimal(8,2)) 
  begin
-	 set @DataVenda = str_to_date(vDataCompra, "%d/%m/%Y");
+	 set @DataCompra = str_to_date(vDataCompra, "%d/%m/%Y");
 	if not exists(select * from tbcompra where notafiscal = vnotafiscal) then
 		set @forne = (select codigo from tbfornecedor where nome = vFornecedor);
-		insert into tbcompra(NotaFiscal, DataCompra, ValorTotal, QtdTotal, Cod_Fornecedor) values (vNotaFiscal, @DataVenda, vValorTotal, vQtdTotal, @forne);
+		insert into tbcompra(NotaFiscal, DataCompra, ValorTotal, QtdTotal, Cod_Fornecedor) values (vNotaFiscal, @DataCompra, vValorTotal, vQtdTotal, @forne);
 		insert into tbitemcompra(Qtd, ValorItem, Notafiscal, codbarras) values (vQtd, vValorItem, vNotafiscal, vcodbarra);
 	else 
 		insert into tbitemcompra(Qtd, ValorItem, Notafiscal, codbarras) values (vQtd, vValorItem, vNotafiscal, vcodbarra);
@@ -319,17 +319,30 @@ delimiter $$
  describe tbproduto;
  
 delimiter $$
-create procedure spInsertVenda(vNumVenda int, vCliente varchar(200), vDataVenda char(10), vCodBarras decimal(14,0), vValorItem decimal(6,2), vQtd int, vTotalVenda int, vNF int)
+create procedure spInsertVenda(vCliente varchar(100), vCodigoBarras decimal(14,0), vQtd int)
 begin
-	set @IdCli = (select Id from tbCliente where Nome = vCliente);
-    set @DataVenda = str_to_date(vDataVenda, "%d/%m/%Y");
-    set @CodBarras = (select CodBarras from tbProduto where CodBarras = vCodBarras);
+	set @vData = current_timestamp();
+    set @NumVenda = (select max(NumeroVenda)+1 from tbVenda);
+    set @vTotal = (select Valor from tbProduto where CodBarras = vCodigoBarras);
+	if exists (select * from tbProduto,tbCliente where CodBarras = vCodigoBarras and Nome = vCliente) then
+		if not exists(select * from tbVenda where NumeroVenda =@NumVenda) then
+			set @idCliente = (select Id from tbCliente where Nome = vCliente);
+			insert into tbVenda(NumeroVenda,IdCliente,DataVenda,TotalVenda,NotaFiscal) values (@NumVenda,@idCliente,@vData,(@vTotal * vQtd),null);
+		end if;
+		if not exists(select * from tbItemVenda where NumeroVenda = @NumVenda and CodBarras = vCodigoBarras) then
+			  insert into tbItemVenda(NumeroVenda,CodBarras,ValorItem,Qtd) values (@NumVenda,vCodigoBarras,@vTotal,vQtd);
+        else
+			call spSelectErro('Venda desse produto','já');
+		end if;
+    end if;
+	if not exists(select * from tbCliente where Nome = vCliente) then call spSelectErro("Cliente","não"); end if;
+	if not exists(select * from tbProduto where CodigoBarras = vCodigoBarras) then call spSelectErro("Produto","não"); end if;
+end
+$$
 
-	if not exists (select NumeroVenda from tbVenda where NumeroVenda = vNumVenda) then
-		insert into tbVenda(IdCliente, NumeroVenda, DataVenda, TotalVenda, NotaFiscal) values (@IdCli, vNumVenda, @DataVenda, vTotalVenda, vNF);
-	end if;
-        insert into tbItemVenda(NumeroVenda, CodBarras, Qtd, ValorItem) values (vNumVenda, @CodBarras, vQtd, vValorItem);
-end $$
+call spInsertVenda("Lança Perfume",12345678910114,10);
+
+drop procedure spInsertVenda;
  
 call spInsertVenda(1, 'Pimpão', '22/08/2022', 12345678910111, 54.61, 1, 54.61, null);
 call spInsertVenda(2, 'Lança Perfume', '22/08/2022', 12345678910112, 100.45, 2, 200.90, null);
@@ -385,16 +398,19 @@ select * from tbProduto;
 
 -- exercício 14
 delimiter $$
-create procedure spUpdateProduto(vCodBarras decimal(14,0), vValorUnitario decimal(6,2))
+create procedure spUpdateProduto(vCodBarras decimal(14,0), vNome varchar(100), vValorUnitario decimal(6,2), vQtd int)
 begin
-	update tbProduto set  ValorUnitario = vValorUnitario where CodBarras = vCodBarras; 
+	update tbProduto set ValorUnitario = vValorUnitario, Nome = vNome, Qtd = vQtd  where CodBarras = vCodBarras; 
 end 
 $$
+
+describe tbproduto;
 
 call spUpdateProduto ("12345678910111", "64.50");
 call spUpdateProduto ("12345678910112", "120.00");
 call spUpdateProduto ("12345678910113", "64.00");
 
+drop procedure spUpdateProduto;
 select * from tbProduto;
 
 -- exercício 15
@@ -462,6 +478,14 @@ end;
 
 call spUpdateProduto(12345678910119, '2.99');
 
+call spUpdateProduto(12345678910199, 'Boneca Marvel', '101.00', 200);
+
+call spUpdateProduto(1234567891000, 'Papel Moeda', '11.00', 1);
+
+call spProd(1234567891000, '', '', );
+
+call spUpdateProduto(1234567891000, '', '', );
+
 select * from tbProduto;
 select * from tbProdutoHistorico;  
 describe tbProduto;   
@@ -471,6 +495,11 @@ call spSelectProduto;
 
 -- exercício 22
 call spInsertVenda(4, 'Disney Chaplin', '26/09/2022', 12345678910111, 65.00, 1, 65.00, null);
+
+select * from tbcliente;
+
+select * from tbvenda;
+select * from tbitemvenda;
 
 -- exercício 23
 select * from tbvenda order by NumeroVenda DESC limit 1;
