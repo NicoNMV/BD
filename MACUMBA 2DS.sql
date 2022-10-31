@@ -547,10 +547,8 @@ on tbCliente.IdCLi = tbClientePF.IdCLi;
 
 -- 36)
 select * from tbCliente
-inner join tbClientePJ
-on tbCliente.IdCLi = tbClientePJ.IdCLi
-inner join tbEndereco
-on tbEndereco.CEP = tbCliente.CepCli
+inner join tbClientePJ on tbCliente.IdCLi = tbClientePJ.IdCLi
+inner join tbEndereco on tbEndereco.CEP = tbCliente.CepCli
 
 -- 37)
 select tbCliente.IdCli, NomeCli , CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from tbCliente
@@ -564,18 +562,25 @@ inner join tbUF on tbEndereco.IdUF = tbUf.IdUF
 delimiter $$
  create procedure spSelectClientePFisicaId(vId int)
 begin 
-	select tbCliente.IdCli, NomeCli , CPF, RG, RG_Dig as "Digito", Nasc, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from tbCliente
+	if exists (select * from tbClientePf where tbClientePf.IdCli = vId) then
+    select tbCliente.IdCli, NomeCli , CPF, RG, RG_Dig as "Digito", Nasc, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from tbCliente
 inner join tbClientePF on tbCliente.IdCLi = tbClientePF.IdCLi 
 inner join tbEndereco on tbCliente.CepCli = tbEndereco.CEP
 inner join tbBairro on tbEndereco.IdBairro = tbBairro.IdBairro
 inner join tbCidade on tbEndereco.IdCidade = tbCidade.IdCidade
 inner join tbUF on tbEndereco.IdUF = tbUf.IdUF 
 where  tbCliente.IdCli = vId;
+else select ("Esse cliente não existe");
+end if;
 end $$
 
-call spSelectClientePFisicaId (2);
+drop procedure spSelectClientePFisicaId;
 
-describe tbClientePf
+call spSelectClientePFisicaId (2);
+call spSelectClientePFisicaId (7);
+
+describe tbClientePf;
+select tbClientePf;
 
 -- 39)
 select tbProduto.CodigoBarras, NomeProd, Valor, tbProduto.Qtd, tbVenda.QtdTotal, ValorItem, tbItemVenda.CodigoBarras, tbVenda.CodigoVenda from tbProduto
@@ -603,15 +608,27 @@ select * from tbfornecedor;
 select * from tbcompra; 
 
 -- 42)
-select tbCliente.IdCli, NomeCli, DataVenda, tbProduto.CodigoBarras, NomeProd, ValorItem, QtdTotal, ValorTotal from tbVenda
+select tbCliente.IdCli, NomeCli, DataVenda, tbProduto.CodigoBarras, NomeProd, ValorItem, tbItemVenda.CodigoVenda from tbVenda
 inner join tbCliente on tbVenda.IdCli = tbCliente.IdCli
 inner join tbItemVenda on tbItemVenda.Codigovenda = tbVenda.CodigoVenda
 inner join tbProduto on tbProduto.CodigoBarras = tbItemVenda.CodigoBarras order by NomeCli asc;
 
+delete from tbItemVenda where CodigoVenda = 2 and CodigoBarras = 12345678910114;
+delete from tbItemVenda
+select * from tbItemVenda;
+describe tbitemVenda;
+describe tbVenda;
+describe tbProduto;
+
+
 -- 43)
-select distinct *
+select Bairro
 from tbVenda 
 inner join tbCliente on tbVenda.IdCli = tbCliente.IdCli 
 inner join tbEndereco on tbCliente.CepCli = tbEndereco.CEP
-inner join tbBairro on tbendereco.IdBairro = tbBairro.IdBairro
+right join tbBairro on tbendereco.IdBairro = tbBairro.IdBairro
+where tbVenda.IdCli is null
+
+select * from tbBairro;
+
 
