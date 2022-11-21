@@ -631,4 +631,60 @@ where tbVenda.IdCli is null
 
 select * from tbBairro;
 
+select * from tbfornecedor;
 
+-- 44)
+create view vwfornecedor as
+select Idfornecedor as "Código", NomeFornecedor as "Fornecedor", telefone as "Telefone" from tbfornecedor;
+
+select * from vwfornecedor;
+
+-- 45)
+select Fornecedor as "Nome", Telefone from vwfornecedor;
+select * [except Código] from vwfornecedor;
+
+-- 46)
+create view vwPJ as
+select tbCliente.IdCli, NomeCli, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from tbCliente
+inner join tbClientePJ on tbCliente.IdCLi = tbClientePJ.IdCLi
+inner join tbEndereco on tbCliente.CepCli = tbEndereco.CEP
+inner join tbBairro on tbEndereco.IdBairro = tbBairro.IdBairro
+inner join tbCidade on tbEndereco.IdCidade = tbCidade.IdCidade
+inner join tbUF on tbEndereco.IdUF = tbUf.IdUF
+
+select * from vwPJ;
+
+
+-- 47)
+select IdCli as "Código", NomeCli as "Cliente", CEP, Logradouro as "Endereço", NumEnd as "Número", CompEnd as "Complemento", Bairro, Cidade, UF from vwPJ
+
+-- 48)
+create view vwPF as
+select tbCliente.IdCli, NomeCli , CPF, RG, RG_Dig, Nasc, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from tbCliente
+inner join tbClientePF on tbCliente.IdCLi = tbClientePF.IdCLi 
+inner join tbEndereco on tbCliente.CepCli = tbEndereco.CEP
+inner join tbBairro on tbEndereco.IdBairro = tbBairro.IdBairro
+inner join tbCidade on tbEndereco.IdCidade = tbCidade.IdCidade
+inner join tbUF on tbEndereco.IdUF = tbUf.IdUF;
+ select * from  vwPF;
+
+
+-- 49)
+select IdCli as "Código", NomeCli as "Cliente" , CPF, RG, RG_Dig as "Dig", Nasc as "Nascimento" from vwPF;
+
+-- 50)
+create or replace view vwPJ as
+select tbCliente.IdCli, NomeCli, CNPJ, IE, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from tbCliente
+inner join tbClientePJ on tbCliente.IdCLi = tbClientePJ.IdCLi
+inner join tbEndereco on tbCliente.CepCli = tbEndereco.CEP
+inner join tbBairro on tbEndereco.IdBairro = tbBairro.IdBairro
+inner join tbCidade on tbEndereco.IdCidade = tbCidade.IdCidade
+inner join tbUF on tbEndereco.IdUF = tbUf.IdUF
+
+-- 51)
+create view vwPJPF as 
+select IdCli as "Id", NomeCli, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from vwPJ
+union
+select IdCli as "Id", NomeCli, CEP, Logradouro, NumEnd, CompEnd, Bairro, Cidade, UF from vwPF
+
+select * from vwPJPF;
